@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <title>পড়াশোনা সহায়ক</title>
+  <!-- এক পেজে ডাইনামিক স্টাডি নোট অ্যাপ্লিকেশন |
+       HTML, CSS ও JavaScript একই ফাইলে রাখা হয়েছে |
+       LocalStorage ব্যবহার করে ডেটা স্থায়ী করা হয় -->
+  <style>
+    /* ========== Base Styles ========== */
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fdfdfd;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 { text-align: center; margin-bottom: 1rem; }
+    h2 { margin-top: 0; }
+
+    /* ========== Card Container ========== */
+    .card {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      max-width: 800px;
+      margin: 1rem auto;
+    }
+
+    /* ========== Form Elements ========== */
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    /* ========== Buttons ========== */
+    button {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin-right: 0.5rem;
+      transition: transform 0.1s ease;
+    }
+    button:active { transform: scale(0.97); }
+    .primary { background: #4CAF50; color: #fff; }
+    .secondary { background: #f44336; color: #fff; }
+
+    /* ========== Notes List ========== */
+    #notes-list { list-style: none; padding: 0; }
+    .note-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem;
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    .note-text { flex-grow: 1; margin-right: 1rem; }
+    .completed { text-decoration: line-through; color: #999; }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>পড়াশোনা সহায়ক 📝</h1>
+
+  <!-- ========== Add Note Section ========== -->
+  <div class="card">
+    <h2>নতুন নোট যোগ করুন</h2>
+    <input id="note-title" type="text" placeholder="শিরোনাম" />
+    <textarea id="note-content" rows="3" placeholder="বিস্তারিত"></textarea>
+    <button class="primary" onclick="addNote()">সংরক্ষণ করুন</button>
+  </div>
+
+  <!-- ========== Notes List Section ========== -->
+  <div class="card">
+    <h2>আপনার নোটসমূহ</h2>
+    <ul id="notes-list"></ul>
+  </div>
+
+  <!-- ========== Script ========== -->
+  <script>
+    // নোটের অ্যারে LocalStorage থেকে রিড করা হচ্ছে, না পেলে ফাঁকা অ্যারে
+    let notes = JSON.parse(localStorage.getItem('studyNotes') || '[]');
+
+    // ডাটা সেভ করার ফাংশন
+    function saveNotes() {
+      localStorage.setItem('studyNotes', JSON.stringify(notes));
+    }
+
+    // নোট রেন্ডার করার ফাংশন
+    function renderNotes() {
+      const list = document.getElementById('notes-list');
+      list.innerHTML = '';
+      notes.forEach((note, index) => {
+        const li = document.createElement('li');
+        li.className = 'note-item';
+
+        const span = document.createElement('span');
+        span.className = 'note-text' + (note.done ? ' completed' : '');
+        span.textContent = note.title + (note.content ? ': ' + note.content : '');
+        li.appendChild(span);
+
+        // সম্পন্ন/পুনরায় বাটন
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = note.done ? 'পুনরায়' : 'সম্পন্ন';
+        toggleBtn.className = 'secondary';
+        toggleBtn.onclick = () => {
+          notes[index].done = !notes[index].done;
+          saveNotes();
+          renderNotes();
+        };
+        li.appendChild(toggleBtn);
+
+        // ডিলিট বাটন
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'মুছুন';
+        delBtn.onclick = () => {
+          notes.splice(index, 1);
+          saveNotes();
+          renderNotes();
+        };
+        li.appendChild(delBtn);
+
+        list.appendChild(li);
+      });
+    }
+
+    // নতুন নোট অ্যাড করার ফাংশন
+    function addNote() {
+      const titleEl = document.getElementById('note-title');
+      const contentEl = document.getElementById('note-content');
+      const title = titleEl.value.trim();
+      const content = contentEl.value.trim();
+      if (!title && !content) return; // খালি হলে ফেরত
+
+      notes.push({ title, content, done: false });
+      titleEl.value = '';
+      contentEl.value = '';
+      saveNotes();
+      renderNotes();
+    }
+
+    // প্রথমে নোট লোড করুন
+    renderNotes();
+  </script>
+</body>
+</html>
